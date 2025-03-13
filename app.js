@@ -1,74 +1,82 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCuXtajCX1ccTz-qhTFzX6oQIm6ngX7DjI",
-    authDomain: "cemerlang-akademik.firebaseapp.com",
-    projectId: "cemerlang-akademik",
-    storageBucket: "cemerlang-akademik.appspot.com",
-    messagingSenderId: "644329352799",
-    appId: "1:644329352799:web:06f59de006b043cd20b5ea",
-    measurementId: "G-B6J4S85CYL"
+  apiKey: "AIzaSyCuXtajCX1ccTz-qhTFzX6oQIm6ngX7DjI",
+  authDomain: "cemerlang-akademik.firebaseapp.com",
+  projectId: "cemerlang-akademik",
+  storageBucket: "cemerlang-akademik.firebasestorage.app",
+  messagingSenderId: "644329352799",
+  appId: "1:644329352799:web:06f59de006b043cd20b5ea",
+  measurementId: "G-B6J4S85CYL"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Function to display positions dynamically
+// Predefined positions list
+const positions = [
+    { id: "timbalan_pengarah", name: "Timbalan Pengarah", quota: 1 },
+    { id: "setiausaha", name: "Setiausaha", quota: 1 },
+    { id: "bendahari", name: "Bendahari", quota: 1 },
+    { id: "urus_setia_1", name: "Unit Urus Setia", quota: 2 },
+    { id: "logistik_1", name: "Unit Logistik", quota: 2 },
+    { id: "teknikal_1", name: "Unit Teknikal", quota: 2 },
+    { id: "publisiti_1", name: "Unit Publisiti", quota: 2 },
+    { id: "protokol_1", name: "Unit Protokol", quota: 2 }
+];
+
+// Function to initialize Firestore with predefined positions
+async function initializePositions() {
+    for (const pos of positions) {
+        // Check if position already exists
+        const q = query(collection(db, "positions"), where("name", "==", pos.name));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            // Add position if it doesn't exist
+            await addDoc(collection(db, "positions"), {
+                name: pos.name,
+                quota: pos.quota
+            });
+        }
+    }
+    loadPositions();  // Refresh UI
+}
+
+// Function to load positions from Firestore
 async function loadPositions() {
     const positionsDiv = document.getElementById("positions");
-    positionsDiv.innerHTML = ""; // Clear existing data
+    positionsDiv.innerHTML = "<p>Loading...</p>";
 
-    // Fetch all positions from Firestore
-    const querySnapshot = await getDocs(collection(db, "positions"));
-    querySnapshot.forEach(docSnap => {
-        const positionData = docSnap.data();
-        const positionId = docSnap.id;
+    try {
+        const querySnapshot = await getDocs(collection(db, "positions"));
+        positionsDiv.innerHTML = "";
 
-        // Create position elements
-        const div = document.createElement("div");
-        div.classList.add("position");
-        div.innerHTML = `
-            <h3>${positionData.name}</h3>
-            <p>Quota: <strong>${positionData.quota}</strong></p>
-            <button ${positionData.quota <= 0 ? "disabled" : ""} onclick="selectPosition('${positionId}', ${positionData.quota})">
-                Apply
-            </button>
-        `;
-        positionsDiv.appendChild(div);
-    });
-}
+        if (querySnapshot.empty) {
+            positionsDiv.innerHTML = "<p>No positions available.</p>";
+            return;
+        }
 
-// Function to handle AJK selection
-window.selectPosition = async function (positionId, currentQuota) {
-    if (currentQuota > 0) {
-        const positionRef = doc(db, "positions", positionId);
-        await updateDoc(positionRef, { quota: currentQuota - 1 }); // Decrease quota by 1
-        alert("You have successfully applied!");
-        loadPositions(); // Refresh the data
-    } else {
-        alert("This position is already full.");
+        querySnapshot.forEach(docSnap => {
+            const positionData = docSnap.data();
+            const div = document.createElement("div");
+            div.classList.add("position");
+            div.innerHTML = `
+                <h3>${positionData.name}</h3>
+                <p>Quota: <strong>${positionData.quota}</strong></p>
+                <button ${positionData.quota <= 0 ? "disabled" : ""}>Apply</button>
+            `;
+            positionsDiv.appendChild(div);
+        });
+    } catch (error) {
+        console.error("Error fetching positions:", error);
+        positionsDiv.innerHTML = "<p>Error loading positions.</p>";
     }
 }
 
-// Function to add new positions dynamically
-window.addPosition = async function () {
-    const positionName = document.getElementById("positionName").value;
-    const positionQuota = parseInt(document.getElementById("positionQuota").value);
-
-    if (positionName && positionQuota > 0) {
-        await addDoc(collection(db, "positions"), { name: positionName, quota: positionQuota });
-        alert("New position added successfully!");
-        document.getElementById("positionName").value = ""; // Clear input field
-        document.getElementById("positionQuota").value = "";
-        loadPositions(); // Refresh list
-    } else {
-        alert("Please enter a valid position name and quota.");
-    }
-}
-
-// Load positions on page load
-loadPositions();
+// Run initialization on page load
+initializePositions();
