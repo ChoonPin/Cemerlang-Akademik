@@ -4,44 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cemerlang Akademik (1 Mei 2025) - AJK Selection</title>
-    
-    <!-- Firebase SDK (CDN) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
+    <script type="module" src="app.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        .container { max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
-        .hidden { display: none; }
-        button { padding: 10px 15px; margin-top: 10px; cursor: pointer; }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        h2 { color: #007bff; }
+        .position { margin: 10px; padding: 10px; border: 1px solid #ddd; display: inline-block; width: 200px; }
+        button { padding: 8px 15px; background: #28a745; color: white; border: none; cursor: pointer; }
+        button:disabled { background: #ccc; }
     </style>
 </head>
 <body>
-
-    <h2>Cemerlang Akademik (1 Mei 2025)</h2>
-    <p>Select your desired position</p>
-
-    <div class="container">
-        <label for="name">Full Name:</label>
-        <input type="text" id="name" placeholder="Enter your name"><br><br>
-
-        <label for="matric">Matric Number:</label>
-        <input type="text" id="matric" placeholder="Enter your matric number"><br><br>
-
-        <label for="position">Select Position:</label>
-        <select id="position">
-            <option value="Chairperson">Chairperson (Quota: 1)</option>
-            <option value="Vice Chairperson">Vice Chairperson (Quota: 2)</option>
-            <option value="Secretary">Secretary (Quota: 2)</option>
-            <option value="Treasurer">Treasurer (Quota: 1)</option>
-            <option value="Public Relations">Public Relations (Quota: 3)</option>
-        </select><br><br>
-
-        <button onclick="submitForm()">Submit</button>
-        <p id="message" class="hidden">Successfully Registered!</p>
-    </div>
-
-    <script src="app.js"></script>
-
+    <h2>Cemerlang Akademik (1 Mei 2025) - AJK Selection</h2>
+    <div id="positions"></div>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
