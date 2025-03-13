@@ -11,11 +11,20 @@
         .position { margin: 10px; padding: 10px; border: 1px solid #ddd; display: inline-block; width: 200px; }
         button { padding: 8px 15px; background: #28a745; color: white; border: none; cursor: pointer; }
         button:disabled { background: #ccc; }
+        .add-form { margin-top: 20px; padding: 10px; border: 1px solid #ddd; display: inline-block; }
     </style>
 </head>
 <body>
     <h2>Cemerlang Akademik (1 Mei 2025) - AJK Selection</h2>
+
+    <div class="add-form">
+        <h3>Add New Position</h3>
+        <input type="text" id="positionName" placeholder="Enter Position Name">
+        <input type="number" id="positionQuota" placeholder="Enter Quota">
+        <button onclick="addPosition()">Add Position</button>
+    </div>
+
+    <h3>Available Positions</h3>
     <div id="positions"></div>
-    <script type="module" src="app.js"></script>
 </body>
 </html>
