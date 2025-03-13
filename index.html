@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cermelanf Akademik (1 Mei 2025) - AJK Selection</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        h2 { color: #007BFF; }
+        form { margin-top: 20px; }
+        label, input, select { display: block; margin: 10px auto; width: 80%; }
+        button { padding: 10px; background: #28a745; color: white; border: none; cursor: pointer; }
+        ul { list-style: none; padding: 0; }
+        li { background: #f4f4f4; padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Cermelanf Akademik (1 Mei 2025) - AJK Selection</h2>
+    
+    <form id="ajkForm">
+        <label for="fullName">Full Name:</label>
+        <input type="text" id="fullName" required>
+        
+        <label for="matricNumber">Matric Number:</label>
+        <input type="text" id="matricNumber" required>
+        
+        <label for="positionSelect">Select Position:</label>
+        <select id="positionSelect" required></select>
+
+        <button type="submit">Apply</button>
+    </form>
+
+    <h3>Available Positions</h3>
+    <ul id="positionList"></ul>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5-xPgSC-sdDYVQ83TqV6qA9ET4VHcnww",
+            authDomain: "ajk-ea44c.firebaseapp.com",
+            projectId: "ajk-ea44c",
+            storageBucket: "ajk-ea44c.firebasestorage.app",
+            messagingSenderId: "550394860489",
+            appId: "1:550394860489:web:3acfb93468c54984368e18",
+            measurementId: "G-W2TXVRE6N4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const positionSelect = document.getElementById("positionSelect");
+        const positionList = document.getElementById("positionList");
+
+        const defaultPositions = [
+            { id: "timbalan_pengarah", name: "Timbalan Pengarah", quota: 1 },
+            { id: "setiausaha", name: "Setiausaha", quota: 1 },
+            { id: "bendahari", name: "Bendahari", quota: 1 },
+            { id: "urus_setia_1", name: "Unit Urus Setia", quota: 2 },
+            { id: "logistik_1", name: "Unit Logistik", quota: 2 },
+            { id: "teknikal_1", name: "Unit Teknikal", quota: 2 },
+            { id: "publisiti_1", name: "Unit Publisiti", quota: 2 },
+            { id: "protokol_1", name: "Unit Protokol", quota: 2 }
+        ];
+
+        async function initializePositions() {
+            const positionsRef = db.collection("positions");
+            const snapshot = await positionsRef.get();
+
+            if (snapshot.empty) {
+                for (const pos of defaultPositions) {
+                    await positionsRef.doc(pos.id).set({ name: pos.name, quota: pos.quota });
+                }
+            }
+            loadPositions();
+        }
+
+        function loadPositions() {
+            const positionsRef = db.collection("positions");
+
+            positionsRef.onSnapshot((snapshot) => {
+                positionSelect.innerHTML = "";
+                positionList.innerHTML = "";
+
+                snapshot.docs.forEach((doc) => {
+                    let data = doc.data();
+
+                    let option = document.createElement("option");
+                    option.value = doc.id;
+                    option.textContent = `${data.name} (Remaining: ${data.quota})`;
+                    positionSelect.appendChild(option);
+
+                    let li = document.createElement("li");
+                    li.textContent = `${data.name}: ${data.quota} slots left`;
+                    positionList.appendChild(li);
+                });
+            });
+        }
+
+        initializePositions();
+
+        document.getElementById("ajkForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            let fullName = document.getElementById("fullName").value.trim();
+            let matricNumber = document.getElementById("matricNumber").value.trim();
+            let positionId = positionSelect.value;
+
+            if (!fullName || !matricNumber || !positionId) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            const applicationsRef = db.collection("applications");
+            const snapshot = await applicationsRef.where("matricNumber", "==", matricNumber).get();
+
+            if (!snapshot.empty) {
+                alert("You have already applied for a position.");
+                return;
+            }
+
+            const positionRef = db.collection("positions").doc(positionId);
+            const positionSnap = await positionRef.get();
+
+            if (!positionSnap.exists) {
+                alert("Position not found.");
+                return;
+            }
+
+            let positionData = positionSnap.data();
+
+            if (positionData.quota > 0) {
+                await positionRef.update({ quota: positionData.quota - 1 });
+
+                await applicationsRef.add({
+                    fullName: fullName,
+                    matricNumber: matricNumber,
+                    position: positionId,
+                    timestamp: new Date()
+                });
+
+                alert("Successfully applied!");
+                loadPositions();
+                document.getElementById("ajkForm").reset();
+            } else {
+                alert("Sorry, this position is full.");
+            }
+        });
+    </script>
+</body>
+</html>
