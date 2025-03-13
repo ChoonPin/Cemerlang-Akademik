@@ -3,58 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cemerlang Akademik - AJK Selection</title>
-    <script type="module" src="app.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>AJK Selection - Cemerlang Akademik</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCuXtajCX1ccTz-qhTFzX6oQIm6ngX7DjI",
+            authDomain: "cemerlang-akademik.firebaseapp.com",
+            projectId: "cemerlang-akademik",
+            storageBucket: "cemerlang-akademik.firebasestorage.app",
+            messagingSenderId: "644329352799",
+            appId: "1:644329352799:web:06f59de006b043cd20b5ea",
+            measurementId: "G-B6J4S85CYL"
+        };
+
+        // Initialize Firebase & Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to add new position
+        async function addPosition() {
+            const positionName = document.getElementById("positionName").value;
+            const positionQuota = document.getElementById("positionQuota").value;
+
+            if (positionName && positionQuota) {
+                try {
+                    await addDoc(collection(db, "positions"), {
+                        name: positionName,
+                        quota: parseInt(positionQuota)
+                    });
+                    document.getElementById("positionName").value = "";
+                    document.getElementById("positionQuota").value = "";
+                } catch (error) {
+                    console.error("Error adding position:", error);
+                }
+            } else {
+                alert("Please enter position name and quota.");
+            }
+        }
+
+        // Real-time update of positions
+        window.onload = () => {
+            const positionsList = document.getElementById("positions");
+            onSnapshot(collection(db, "positions"), (snapshot) => {
+                positionsList.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    positionsList.innerHTML += `<div class="position-card">
+                        <h3>${data.name}</h3>
+                        <p>Quota: ${data.quota}</p>
+                    </div>`;
+                });
+            });
+        };
+    </script>
 </head>
-<body class="bg-light">
+<body>
 
-    <div class="container mt-5">
-        <h2 class="text-center text-primary">Cemerlang Akademik (1 Mei 2025) - AJK Selection</h2>
+    <h2>Cemerlang Akademik (1 Mei 2025) - AJK Selection</h2>
 
-        <!-- Add New Position Form -->
-        <div class="card mt-4 p-4 shadow-sm">
-            <h4 class="text-center">Add New Position</h4>
-            <div class="d-flex justify-content-center">
-                <input type="text" id="positionName" class="form-control m-2" placeholder="Enter Position Name">
-                <input type="number" id="positionQuota" class="form-control m-2" placeholder="Enter Quota">
-                <button id="addPositionBtn" class="btn btn-success m-2">Add Position</button>
-            </div>
-        </div>
-
-        <!-- Available Positions -->
-        <div class="mt-4">
-            <h4 class="text-center">Available Positions</h4>
-            <div id="positions" class="row">
-                <!-- Positions will be loaded here dynamically -->
-            </div>
+    <div class="card">
+        <h3>Add New Position</h3>
+        <div class="d-flex">
+            <input type="text" id="positionName" placeholder="Enter Position Name">
+            <input type="number" id="positionQuota" placeholder="Enter Quota">
+            <button id="addPositionBtn" onclick="addPosition()">Add Position</button>
         </div>
     </div>
 
-    <script>
-        document.getElementById("addPositionBtn").addEventListener("click", async () => {
-            const name = document.getElementById("positionName").value.trim();
-            const quota = parseInt(document.getElementById("positionQuota").value);
-
-            if (!name || isNaN(quota) || quota <= 0) {
-                alert("Please enter a valid position name and quota.");
-                return;
-            }
-
-            // Add to Firestore
-            import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-            const db = getFirestore();
-
-            try {
-                await addDoc(collection(db, "positions"), { name, quota });
-                alert("Position added successfully!");
-                location.reload(); // Refresh page to update list
-            } catch (error) {
-                console.error("Error adding position:", error);
-                alert("Error adding position. Please try again.");
-            }
-        });
-    </script>
+    <h4>Available Positions</h4>
+    <div id="positions"></div>
 
 </body>
 </html>
