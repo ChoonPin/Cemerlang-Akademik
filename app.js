@@ -1,6 +1,6 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -17,17 +17,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Function to display positions
+// Function to display positions dynamically
 async function loadPositions() {
     const positionsDiv = document.getElementById("positions");
     positionsDiv.innerHTML = ""; // Clear existing data
 
-    // Get all positions from Firestore
+    // Fetch all positions from Firestore
     const querySnapshot = await getDocs(collection(db, "positions"));
     querySnapshot.forEach(docSnap => {
         const positionData = docSnap.data();
         const positionId = docSnap.id;
-        
+
         // Create position elements
         const div = document.createElement("div");
         div.classList.add("position");
@@ -51,6 +51,22 @@ window.selectPosition = async function (positionId, currentQuota) {
         loadPositions(); // Refresh the data
     } else {
         alert("This position is already full.");
+    }
+}
+
+// Function to add new positions dynamically
+window.addPosition = async function () {
+    const positionName = document.getElementById("positionName").value;
+    const positionQuota = parseInt(document.getElementById("positionQuota").value);
+
+    if (positionName && positionQuota > 0) {
+        await addDoc(collection(db, "positions"), { name: positionName, quota: positionQuota });
+        alert("New position added successfully!");
+        document.getElementById("positionName").value = ""; // Clear input field
+        document.getElementById("positionQuota").value = "";
+        loadPositions(); // Refresh list
+    } else {
+        alert("Please enter a valid position name and quota.");
     }
 }
 
