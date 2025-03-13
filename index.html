@@ -3,81 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AJK Selection - Cemerlang Akademik</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Import Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCuXtajCX1ccTz-qhTFzX6oQIm6ngX7DjI",
-            authDomain: "cemerlang-akademik.firebaseapp.com",
-            projectId: "cemerlang-akademik",
-            storageBucket: "cemerlang-akademik.firebasestorage.app",
-            messagingSenderId: "644329352799",
-            appId: "1:644329352799:web:06f59de006b043cd20b5ea",
-            measurementId: "G-B6J4S85CYL"
-        };
-
-        // Initialize Firebase & Firestore
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Function to add new position
-        async function addPosition() {
-            const positionName = document.getElementById("positionName").value;
-            const positionQuota = document.getElementById("positionQuota").value;
-
-            if (positionName && positionQuota) {
-                try {
-                    await addDoc(collection(db, "positions"), {
-                        name: positionName,
-                        quota: parseInt(positionQuota)
-                    });
-                    document.getElementById("positionName").value = "";
-                    document.getElementById("positionQuota").value = "";
-                } catch (error) {
-                    console.error("Error adding position:", error);
-                }
-            } else {
-                alert("Please enter position name and quota.");
-            }
-        }
-
-        // Real-time update of positions
-        window.onload = () => {
-            const positionsList = document.getElementById("positions");
-            onSnapshot(collection(db, "positions"), (snapshot) => {
-                positionsList.innerHTML = "";
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    positionsList.innerHTML += `<div class="position-card">
-                        <h3>${data.name}</h3>
-                        <p>Quota: ${data.quota}</p>
-                    </div>`;
-                });
-            });
-        };
-    </script>
+    <title>Cemerlang Akademik - AJK Selection</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="container">
+        <h1>Cemerlang Akademik (1 Mei 2025) - AJK Selection</h1>
 
-    <h2>Cemerlang Akademik (1 Mei 2025) - AJK Selection</h2>
+        <div class="form-section">
+            <h2>Enter Your Details</h2>
+            <input type="text" id="fullName" placeholder="Enter Full Name" required>
+            <input type="text" id="matricNumber" placeholder="Enter Matric Number" required>
+        </div>
 
-    <div class="card">
-        <h3>Add New Position</h3>
-        <div class="d-flex">
-            <input type="text" id="positionName" placeholder="Enter Position Name">
-            <input type="number" id="positionQuota" placeholder="Enter Quota">
-            <button id="addPositionBtn" onclick="addPosition()">Add Position</button>
+        <div class="position-section">
+            <h2>Available Positions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Remaining Quota</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="positionsTable">
+                    <!-- Positions will be displayed here -->
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <h4>Available Positions</h4>
-    <div id="positions"></div>
-
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
