@@ -13,7 +13,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Positions List
+// Positions Data
 const positions = [
     { id: "timbalan_pengarah", name: "Timbalan Pengarah", quota: 1 },
     { id: "setiausaha", name: "Setiausaha", quota: 1 },
@@ -25,73 +25,83 @@ const positions = [
     { id: "protokol_1", name: "Unit Protokol", quota: 2 }
 ];
 
-// Initialize positions in Firestore (Run once)
-// positions.forEach(pos => {
-//     db.collection("positions").doc(pos.id).set({
-//         name: pos.name,
-//         quota: pos.quota
-//     });
-// });
-
-// Load Available Positions in Real-Time
+// Load Available Positions
 function loadPositions() {
-    const tableBody = document.getElementById("positionsTable");
-    tableBody.innerHTML = ""; // Clear table before adding new data
+    const positionsList = document.getElementById("positionsList");
+    positionsList.innerHTML = "";
 
-    db.collection("positions").onSnapshot(snapshot => {
-        tableBody.innerHTML = ""; // Reset table
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.quota > 0) {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${data.name}</td>
-                    <td>${data.quota}</td>
-                    <td><button onclick="applyPosition('${doc.id}', '${data.name}', ${data.quota})">Select</button></td>
-                `;
-                tableBody.appendChild(row);
+    positions.forEach(pos => {
+        db.collection("positions").doc(pos.id).get().then(doc => {
+            let quotaLeft = doc.exists ? doc.data().quota : pos.quota;
+            
+            if (quotaLeft > 0) {
+                const li = document.createElement("li");
+                li.innerHTML = `${pos.name} (Remaining: ${quotaLeft}) 
+                    <button class="select-btn" onclick="selectPosition('${pos.id}', '${pos.name}')">Select</button>`;
+                positionsList.appendChild(li);
             }
         });
     });
 }
 
-// Apply for a Position
-function applyPosition(positionId, positionName, quota) {
+// Function to Select a Position
+function selectPosition(positionId, positionName) {
     const fullName = document.getElementById("fullName").value.trim();
     const matricNumber = document.getElementById("matricNumber").value.trim();
 
     if (fullName === "" || matricNumber === "") {
-        alert("Please enter your full name and matric number before selecting a position.");
+        alert("Please enter your full name and matric number.");
         return;
     }
 
-    if (quota <= 0) {
-        alert("Sorry, this position is already full.");
-        return;
-    }
+    const userRef = db.collection("selected_positions").doc(matricNumber);
+    userRef.get().then(doc => {
+        if (doc.exists) {
+            alert("You have already selected a position!");
+        } else {
+            db.collection("positions").doc(positionId).get().then(doc => {
+                if (doc.exists) {
+                    let quotaLeft = doc.data().quota;
 
-    // Reduce quota in Firestore
-    const positionRef = db.collection("positions").doc(positionId);
-    positionRef.update({
-        quota: firebase.firestore.FieldValue.increment(-1)
-    }).then(() => {
-        // Save user selection
-        db.collection("applications").add({
-            fullName: fullName,
-            matricNumber: matricNumber,
-            positionId: positionId,
-            positionName: positionName,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            alert("Successfully applied for " + positionName);
-        }).catch(error => {
-            console.error("Error saving application: ", error);
-        });
-    }).catch(error => {
-        console.error("Error updating quota: ", error);
+                    if (quotaLeft > 0) {
+                        // Update quota in Firestore
+                        db.collection("positions").doc(positionId).update({
+                            quota: quotaLeft - 1
+                        });
+
+                        // Save user selection
+                        userRef.set({
+                            fullName: fullName,
+                            matricNumber: matricNumber,
+                            position: positionName
+                        });
+
+                        alert(`You have successfully selected ${positionName}`);
+                        loadPositions();
+                    } else {
+                        alert("This position is already full.");
+                    }
+                }
+            });
+        }
     });
 }
 
-// Run function when page loads
-window.onload = loadPositions;
+// Initialize Firestore Database with Default Positions
+function initializeFirestoreData() {
+    positions.forEach(pos => {
+        db.collection("positions").doc(pos.id).get().then(doc => {
+            if (!doc.exists) {
+                db.collection("positions").doc(pos.id).set({
+                    name: pos.name,
+                    quota: pos.quota
+                });
+            }
+        });
+    });
+
+    loadPositions();
+}
+
+// Run the Initialization Function
+initializeFirestoreData();
