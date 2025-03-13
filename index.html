@@ -3,38 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cemerlang Akademik - AJK Selection</title>
+    <title>AJK Selection - Cemerlang Akademik</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <h1>Cemerlang Akademik (1 Mei 2025) - AJK Selection</h1>
-
-        <div class="form-section">
+        
+        <div class="form-container">
             <h2>Enter Your Details</h2>
             <input type="text" id="fullName" placeholder="Enter Full Name" required>
             <input type="text" id="matricNumber" placeholder="Enter Matric Number" required>
         </div>
 
-        <div class="position-section">
-            <h2>Available Positions</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Position</th>
-                        <th>Remaining Quota</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="positionsTable">
-                    <!-- Positions will be displayed here -->
-                </tbody>
-            </table>
-        </div>
+        <h2>Available Positions</h2>
+        <ul id="positionsList"></ul>
     </div>
 
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"></script>
+    
+    <!-- Custom JS -->
     <script src="app.js"></script>
 </body>
 </html>
